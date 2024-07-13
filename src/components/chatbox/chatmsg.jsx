@@ -4,7 +4,8 @@ import Popover, { PopButton } from "../popover";
 /* eslint-disable react/prop-types */
 // eslint-disable-next-line react/prop-types
 function Chatmsg({messages, currentUser, currentChat, removeMsg}) {
-    const userMessages = messages.filter(msg => msg.userId === currentUser.id && msg.toId === currentChat.id); 
+    const userMessages = messages;
+    //.filter(msg => msg.userId === currentUser.id && msg.toId === currentChat.id); 
     
     return (
         <div className="position-relative" style={{

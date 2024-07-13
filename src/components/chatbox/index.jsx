@@ -4,7 +4,7 @@ import Chatmsg from "./chatmsg";
 import Chatinput from "./chatinput";
 
 // eslint-disable-next-line react/prop-types
-function Chatbox({messages, currentUser, currentChat, setMessageData, addFriend, removeMsg}) {
+function Chatbox({messages, currentUser, currentChat, setMessageData, addFriend, removeMsg, loadingAddFriend}) {
 
     const msgSend = (msg) => {
         setMessageData({
@@ -17,14 +17,19 @@ function Chatbox({messages, currentUser, currentChat, setMessageData, addFriend,
 
     return (
         <div className="col-12 col-lg-7 col-xl-9">
-            <Chatheader 
-                currentChat={currentChat} 
-                currentUser={currentUser} 
-                addFriend={addFriend} 
-                isFriend={currentUser.friend.includes(currentChat.id)}
-            />
-            <Chatmsg messages={messages} currentUser={currentUser} currentChat={currentChat} removeMsg={removeMsg}/>
-            <Chatinput msgSend={msgSend} />
+            {currentChat && (
+                <>
+                 <Chatheader 
+                    currentChat={currentChat} 
+                    currentUser={currentUser} 
+                    addFriend={addFriend} 
+                    isFriend={currentUser.friend.includes(currentChat.id)}
+                    loadingAddFriend={loadingAddFriend}
+                 />
+                 <Chatmsg messages={messages} currentUser={currentUser} currentChat={currentChat} removeMsg={removeMsg}/>
+                 <Chatinput msgSend={msgSend} />
+                </>
+            )}
         </div>
     )
 }

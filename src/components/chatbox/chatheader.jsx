@@ -1,8 +1,10 @@
 import Avatar from "../avatar";
+import { LoaderSimple } from "../loader";
 
 /* eslint-disable react/prop-types */
 // eslint-disable-next-line react/prop-types
-function Chatheader({currentChat, addFriend, isFriend}) {
+function Chatheader({currentChat, addFriend, isFriend, loadingAddFriend}) {
+
     return (
         <div className="py-2 px-4 border-bottom d-none d-lg-block">
             <div className="d-flex align-items-center py-1">
@@ -14,9 +16,17 @@ function Chatheader({currentChat, addFriend, isFriend}) {
                     <div className="text-muted small"><em>Typing...</em></div>
                 </div>  
                 <button type="button" className="btn btn-light" 
-                    onClick={() => addFriend(isFriend ? "remove" : "add", currentChat)} 
+                    onClick={() => {
+                        addFriend(isFriend ? "remove" : "add", currentChat);
+                    }} 
                 >
-                    {isFriend ? "UnFriend" : "Add Friend"}
+                    {loadingAddFriend ? (
+                        <LoaderSimple />
+                    ) : (
+                        <>
+                        {isFriend ? "UnFriend" : "Add Friend"}
+                        </>
+                    )}
                 </button>              
             </div>
 

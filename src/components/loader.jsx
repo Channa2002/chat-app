@@ -7,3 +7,12 @@ export default function Loader() {
         </div>
     );
 }
+
+export function LoaderSimple() {
+    return (
+        <div className="spinner-border text-primary" role="status">
+            <span className="sr-only">Loading...</span>
+        </div>
+    );
+}
+

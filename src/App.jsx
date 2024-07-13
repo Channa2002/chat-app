@@ -25,6 +25,8 @@ const [searchVal, setSearchVal] = useState("");
 const [loading, setLoading] = useState(true);
 const [isSettings, SetIsSettings] = useState(false);
 const [currentSetting, setCurrentSetting] = useState("profile");
+const [loadingMsg, setLoadingMsg] = useState(false);
+const [loadingAddFriend, setLoadingAddFriend] = useState(false);
 
 // console.log(users, "-->", currentUser, "-->", messages  )
 
@@ -39,8 +41,8 @@ const handleFetchUsers = async () => {
   setUsers(res.data);
 }
 
-const handleMessages = async (userId) => {
-  const res = await apiCall.get(`/chat?userId=${userId}`);
+const handleMessages = async (userId, toId) => {
+  const res = await apiCall.get(`/chat?userId=${userId}&toId=${toId}`);
   setMessages(res.data);
 }
 
@@ -66,12 +68,20 @@ const toggleSettings = () => {
   SetIsSettings(prev => !prev);
 }
 
-function addFriend(type, user) {
+async function addFriend(type, user) {
+  console.log("In add Friend");
+  setLoadingAddFriend(true);
+  const runFunc = (type, friend, user) => {
+    return type === "add"
+      ? friend.includes(user.id) ? friend : [...friend, user.id]
+      : friend.filter(frnd => frnd !== user.id);
+  }
+  const payload = runFunc(type, currentUser.friend, user);
+  const res = await apiCall.put(`/user/${currentUser.id}`, { userData: { friend: payload } });
+  console.log(res);
     setUsers(prev => prev.map(data => {
       if(currentUser.id === data.id) {
-          data.friend = type === "add"
-            ? data.friend.includes(user.id) ? data.friend : [...data.friend, user.id]
-            : data.friend.filter(frnd => frnd !== user.id);
+          data.friend = payload;
       }
       return data;
      }));
@@ -79,15 +89,18 @@ function addFriend(type, user) {
      setCurrentUser(prev => {
       return {
         ...prev,
-        friend: type === "add"
-          ? prev.friend.includes(user.id) ? prev.friend : [...prev.friend, user.id]
-          : prev.friend.filter(frnd => frnd !== user.id),
+        friend: payload,
       }
-     });  
+     });
+     setLoadingAddFriend(false);
 }
 
-const setChat = (user) => {
+const setChat = async (user) => {
+  setLoadingMsg(true);
+  setCurrentChat(null);
+  await handleMessages((currentUser.id, user.id));
   setCurrentChat(user);
+  setLoadingMsg(false);
 }
 
 const setMessageData = async (msg) => {
@@ -158,7 +171,10 @@ useEffect(() => {
           addCurrentSetting={addCurrentSetting}
         />
       )}
-      {!isSettings && currentChat && (
+      {loadingMsg && (<div style={{ margin: "0 auto" }}>
+        <Loader />
+      </div>)}
+      {currentUser?.id && !isSettings && currentChat && (
         <Chatbox 
           messages={messages} 
           currentUser={currentUser} 
@@ -166,6 +182,7 @@ useEffect(() => {
           setMessageData={setMessageData} 
           addFriend={addFriend}
           removeMsg={removeMsg}
+          loadingAddFriend={loadingAddFriend}
         />
       )}
       {isSettings && currentSetting === "Profile" && <Profile currentUser={currentUser}/>}
