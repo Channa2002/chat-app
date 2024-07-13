@@ -1,0 +1,39 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.login-component{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100vh;
+
+    .login-header{
+        font-size: 35px;
+        font-weight: 700;
+    }
+
+    .login-name{
+        font-size: 25px;
+        font-weight: 400;
+    }
+
+    .login-input{
+        width: 300px;
+        border-radius: 5px;
+        padding: 5px;
+    }
+
+    .login-button{
+        margin-top: 20px;
+        border: none;
+        width: 100px;
+        background-color: gray;
+        border-radius: 4px;
+        font-size: 20px;
+        font-weight: 500;
+
+    }
+}
