@@ -9,10 +9,10 @@ import {
   export const router = createBrowserRouter([
     {
       path: "/",
-      element: <App />,
+      element: <div></div>,
     },
     {
         path:"/login",
-        element: <Login />
+        element: <div></div>,
     },
   ]);
