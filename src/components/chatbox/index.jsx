@@ -11,7 +11,8 @@ function Chatbox({currentUser, currentChat, addFriend, loadingAddFriend, width, 
             messageInfo: msg,
             dateTime: `${new Date()}`,
             userId: currentUser.id,
-            toId: currentChat.id
+            toId: currentChat.id,
+            timestamp: new Date(),
         },);
     }
 

@@ -17,9 +17,9 @@ function Chatheader({currentChat, addFriend, isFriend, loadingAddFriend, width, 
                 </div>
                 <div className="flex-grow-1 pl-3">
                     <strong>{currentChat.name}</strong>
-                    <div className="text-muted small"><em>Typing...</em></div>
+                    {/* <div className="text-muted small"><em>Typing...</em></div> */}
                 </div>  
-                <button type="button" className="btn btn-light" 
+                {/* <button type="button" className="btn btn-light" 
                     onClick={() => {
                         addFriend(isFriend ? "remove" : "add", currentChat);
                     }} 
@@ -31,7 +31,7 @@ function Chatheader({currentChat, addFriend, isFriend, loadingAddFriend, width, 
                         {isFriend ? "UnFriend" : "Add Friend"}
                         </>
                     )}
-                </button>              
+                </button>               */}
             </div>
 
         </div>

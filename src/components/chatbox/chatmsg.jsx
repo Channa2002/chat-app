@@ -23,7 +23,7 @@ function Chatmsg({messages, currentUser, currentChat, removeMsg}) {
             overflowY: "scroll",
             }}>
                         <div className="chat-messages p-4">
-                        {userMessages.map(message => {
+                        {userMessages.sort((data1, data2) => +data1.dateTime - +data2.dateTime).map(message => {
                             const dateTime = new Date(message.dateTime).toLocaleTimeString([], { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true });
                             const resDateAmPm = dateTime.split(" ");
                             const resAmPm = resDateAmPm[1].toUpperCase();

@@ -13,7 +13,7 @@ import Profile from './components/profile';
 import Loader from './components/loader';
 import { getChats, addChat, deleteChat, login } from "./api/firestore";
 import { db } from "./firebaseConfig";
-import { onSnapshot, query, collection, where, or } from "firebase/firestore";
+import { onSnapshot, query, collection, where, or, orderBy } from "firebase/firestore";
 // const { BrowserWindow } = require('electron');
 
 // const win = new BrowserWindow();
@@ -35,10 +35,6 @@ const [loadingMsg, setLoadingMsg] = useState(false);
 const [loadingAddFriend, setLoadingAddFriend] = useState(false);
 const [width, setWidth] = useState(window.innerWidth);
 const [isHome, SetIsHome] = useState(true);
-
-console.log(users, "-->", currentUser, "-->", messages  );
-
-console.log("==>", width);
 
 const addCurrentSetting = (data) => {
   setCurrentSetting(data)
@@ -107,11 +103,11 @@ async function addFriend(type, user) {
 const setChat = async (user) => {
   SetIsHome(false);
   setCurrentChat(user);
-  setNewMsgRelay(prev => {
-    const copyPrev = { ...prev };
-    copyPrev[user.id] = 0;
-    return copyPrev;
-  });
+  // setNewMsgRelay(prev => {
+  //   const copyPrev = { ...prev };
+  //   copyPrev[user.id] = 0;
+  //   return copyPrev;
+  // });
 }
 
 const addSetIsHome = () => {
@@ -169,7 +165,6 @@ useEffect(() => {
       id: doc.id,
       ...doc.data()
     }));
-    console.log("==>users",usersData);
     setUsers(usersData);
   });
 
@@ -183,12 +178,12 @@ useEffect(() => {
 useEffect(() => {
   let unsubscribe = null;
   if (currentUser?.id) {
-    unsubscribe = onSnapshot(query(collection(db, 'chats'), or((where('userId', '==', currentUser.id), where('userId', '==', currentUser.id)))), (snapshot) => {
+    unsubscribe = onSnapshot(query(collection(db, 'chats'), or((where('userId', '==', currentUser.id), where('userId', '==', currentUser.id))), orderBy('timestamp')), (snapshot) => {
       const chatsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
       }));
-      console.log("==>chatsData",chatsData);
+      // console.log("==>chatsData",chatsData);
       // const isDeleted = chatsData.length < messages.length;
       // if (isDeleted) {
       setMessages(chatsData);
@@ -197,19 +192,21 @@ useEffect(() => {
         const newMsgs = chatsData.filter(msg => !oldMsgs.includes(msg.id));
         // setMessages(chatsData);
   
-        newMsgs.map(msg => {
-          if (currentChat && currentChat.id !== msg.toId & currentChat.id !== msg.userId) {
-            setNewMsgRelay(prev => {
-              const copyPrev = { ...prev };
-              if (copyPrev.hasOwnProperty(msg.toId)) {
-                copyPrev[msg.toId] = copyPrev[msg.toId] + 1;
-              } else {
-                copyPrev[msg.toId] = 1;
-              }
-              return copyPrev;
-            });
-          }
-        });
+        // if (!loading) {
+        //   newMsgs.map(msg => {
+        //     if (!currentChat || currentChat.id !== msg.userId) {
+        //       setNewMsgRelay(prev => {
+        //         const copyPrev = { ...prev };
+        //         if (copyPrev.hasOwnProperty(msg.toId)) {
+        //           copyPrev[msg.toId] = copyPrev[msg.toId] + 1;
+        //         } else {
+        //           copyPrev[msg.toId] = 1;
+        //         }
+        //         return copyPrev;
+        //       });
+        //     }
+        //   });
+        // }
       // }
     });
   }

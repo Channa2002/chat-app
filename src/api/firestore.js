@@ -156,7 +156,7 @@ function getDataChanges(ref, onChangeData) {
       snapshot.forEach((doc) => {
         data.push({ id: doc.id, ...doc.data() }); // Add document ID and data
       });
-      console.log("Updated data:", data);
+    //   console.log("Updated data:", data);
       onChangeData(data);
       // Update your component state with the received data
     });
@@ -174,7 +174,7 @@ export const addChat = async (msg) => {
     try {
         // Add a new document with the specified data
         const docRef = await addDoc(collection(db, 'chats'), msg);
-        console.log('Document written with ID: ', docRef.id);
+        // console.log('Document written with ID: ', docRef.id);
         return docRef;
         // Reset the form or handle success
     } catch (error) {
@@ -188,7 +188,7 @@ export const updateChat = async (docId, msg) => {
     try {
         const docRef = doc(db, 'chats', docId);
         await updateDoc(docRef, msg);
-        console.log('Document updated successfully!');
+        // console.log('Document updated successfully!');
         return "updated";
         // Reset the form or handle success
     } catch (error) {
@@ -202,7 +202,7 @@ export const deleteChat = async (docId) => {
     try {
         const docRef = doc(db, 'chats', docId);
         await deleteDoc(docRef);
-        console.log('Document deleted successfully!');
+        // console.log('Document deleted successfully!');
         return "deleted";
         // Reset the form or handle success
     } catch (error) {
