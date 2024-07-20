@@ -11,14 +11,20 @@ import apiCall from './api';
 import Privacy from "./components/privacy"
 import Profile from './components/profile';
 import Loader from './components/loader';
-// import SocketIOClient from "socket.io-client";
-// import { BASE_URL_SOCKET } from "./api/index";
+import { getChats, addChat, deleteChat, login } from "./api/firestore";
+import { db } from "./firebaseConfig";
+import { onSnapshot, query, collection, where, or } from "firebase/firestore";
+// const { BrowserWindow } = require('electron');
+
+// const win = new BrowserWindow();
+// const tabId = win.webContents.id;
 
 function App() {
 const { accessToken } = useAuth();
 const navigate = useNavigate();
 const [users, setUsers] = useState([]);
 const [messages, setMessages] = useState([]);
+const [newMsgRelay, setNewMsgRelay] = useState({});
 const [currentUser, setCurrentUser] = useState({});
 const [currentChat, setCurrentChat] = useState(null);
 const [searchVal, setSearchVal] = useState("");
@@ -27,8 +33,12 @@ const [isSettings, SetIsSettings] = useState(false);
 const [currentSetting, setCurrentSetting] = useState("profile");
 const [loadingMsg, setLoadingMsg] = useState(false);
 const [loadingAddFriend, setLoadingAddFriend] = useState(false);
+const [width, setWidth] = useState(window.innerWidth);
+const [isHome, SetIsHome] = useState(true);
 
-// console.log(users, "-->", currentUser, "-->", messages  )
+console.log(users, "-->", currentUser, "-->", messages  );
+
+console.log("==>", width);
 
 const addCurrentSetting = (data) => {
   setCurrentSetting(data)
@@ -41,26 +51,25 @@ const handleFetchUsers = async () => {
   setUsers(res.data);
 }
 
-const handleMessages = async (userId, toId) => {
-  const res = await apiCall.get(`/chat?userId=${userId}&toId=${toId}`);
-  setMessages(res.data);
+const handleMessages = async (userId) => {
+  const results = await getChats(userId);
+  setMessages(results);
 }
 
 const handleLogin = async () => {
-  const localUser = localStorage.getItem("chatlogin");
+  const localUser = localStorage.getItem("loginuser");
   const parseLocalUser = localUser ? JSON.parse(localUser) : null;
   let userId = undefined;
   if (parseLocalUser && parseLocalUser.id) {
     setCurrentUser(parseLocalUser);
     userId = parseLocalUser.id;
   } else {
-    const res = await apiCall.post("/login", { token: accessToken });
-    setCurrentUser(res.data);
-    userId = res.data.id;
-    localStorage.setItem("chatlogin", JSON.stringify(res.data));
+    const result = await login(accessToken);
+    console.log("result", result);
+    // setCurrentUser(result);
+    // userId = result.id;
+    // localStorage.setItem("loginuser", JSON.stringify(result));
   }
-  await handleFetchUsers();
-  await handleMessages(userId);
   setLoading(false);
 }
 
@@ -96,20 +105,26 @@ async function addFriend(type, user) {
 }
 
 const setChat = async (user) => {
-  setLoadingMsg(true);
-  setCurrentChat(null);
-  await handleMessages((currentUser.id, user.id));
+  SetIsHome(false);
   setCurrentChat(user);
-  setLoadingMsg(false);
+  setNewMsgRelay(prev => {
+    const copyPrev = { ...prev };
+    copyPrev[user.id] = 0;
+    return copyPrev;
+  });
+}
+
+const addSetIsHome = () => {
+  SetIsHome(true);
 }
 
 const setMessageData = async (msg) => {
   const id = new Date();
   setMessages(prev => [...prev, { ...msg, id }]);
-  const res = await apiCall.post(`/chat`, msg);
+  const res = await addChat(msg);
   setMessages(prev => {
     if (prev.id === id) {
-      return res.data;
+      return res;
     }
     return prev;
   });
@@ -120,8 +135,8 @@ const searchUser = (name) => {
 }
 
 async function removeMsg(msgData) {
-  await apiCall.delete(`/chat/${msgData.id}`);
-  setMessages(prev => prev.filter(data => data.id !== msgData.id));
+  await deleteChat(msgData.id);
+  // setMessages(prev => prev.filter(data => data.id !== msgData.id));
 }
 
 useEffect(() => {
@@ -130,10 +145,81 @@ useEffect(() => {
   }
   
   if (accessToken && accessToken !== "no") {
-    handleLogin();
+    setCurrentUser(accessToken);
+    setLoading(false);
   }
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [accessToken]);
+
+useEffect(() => {
+  const handleResize = () => {
+    setWidth(window.innerWidth);
+  };
+
+  window.addEventListener('resize', handleResize);
+
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
+}, []);
+
+useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+    const usersData = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    console.log("==>users",usersData);
+    setUsers(usersData);
+  });
+
+  return () => {
+    if (unsubscribe) {
+      unsubscribe()
+    }
+  }
+}, []);
+
+useEffect(() => {
+  let unsubscribe = null;
+  if (currentUser?.id) {
+    unsubscribe = onSnapshot(query(collection(db, 'chats'), or((where('userId', '==', currentUser.id), where('userId', '==', currentUser.id)))), (snapshot) => {
+      const chatsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log("==>chatsData",chatsData);
+      // const isDeleted = chatsData.length < messages.length;
+      // if (isDeleted) {
+      setMessages(chatsData);
+      // } else {
+        const oldMsgs = messages.map(msg => msg.id);
+        const newMsgs = chatsData.filter(msg => !oldMsgs.includes(msg.id));
+        // setMessages(chatsData);
+  
+        newMsgs.map(msg => {
+          if (currentChat && currentChat.id !== msg.toId & currentChat.id !== msg.userId) {
+            setNewMsgRelay(prev => {
+              const copyPrev = { ...prev };
+              if (copyPrev.hasOwnProperty(msg.toId)) {
+                copyPrev[msg.toId] = copyPrev[msg.toId] + 1;
+              } else {
+                copyPrev[msg.toId] = 1;
+              }
+              return copyPrev;
+            });
+          }
+        });
+      // }
+    });
+  }
+
+  return () => {
+    if (unsubscribe) {
+      unsubscribe();
+    }
+  }
+}, [currentUser]);
 
 // useEffect(() => {
 //   // connect to socket server
@@ -159,7 +245,7 @@ useEffect(() => {
 
   return loading ? ( <Loader /> ) : (
     <Layout >
-      {currentUser?.id && (
+      {currentUser?.id && (width > 1024 || isHome) && (
         <Chatusers 
           users={users} 
           setChat={setChat} 
@@ -169,20 +255,25 @@ useEffect(() => {
           isSettings={isSettings}
           toggleSettings={toggleSettings}
           addCurrentSetting={addCurrentSetting}
+          addSetIsHome={addSetIsHome}
+          newMsgRelay={newMsgRelay}
         />
       )}
-      {loadingMsg && (<div style={{ margin: "0 auto" }}>
+      {/* {loadingMsg && (<div style={{ margin: "0 auto" }}>
         <Loader />
-      </div>)}
-      {currentUser?.id && !isSettings && currentChat && (
+      </div>)} */}
+      {currentUser?.id && !isSettings && currentChat && (width > 1024 || !isHome) && (
         <Chatbox 
-          messages={messages} 
           currentUser={currentUser} 
           currentChat={currentChat} 
-          setMessageData={setMessageData} 
           addFriend={addFriend}
-          removeMsg={removeMsg}
           loadingAddFriend={loadingAddFriend}
+          width={width}
+          addSetIsHome={addSetIsHome}
+          loadingMsg={loadingMsg}
+          messages={messages}
+          setMessageData={setMessageData}
+          removeMsg={removeMsg}
         />
       )}
       {isSettings && currentSetting === "Profile" && <Profile currentUser={currentUser}/>}

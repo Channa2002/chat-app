@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 // eslint-disable-next-line react/prop-types
-function Chatinput({msgSend}) {
+function Chatinput({msgSend, isOff}) {
     const [msg, setMsg] = useState("");
     
     return (
@@ -19,8 +19,9 @@ function Chatinput({msgSend}) {
                     type="text" 
                     className="form-control" 
                     placeholder="Type your message" 
+                    disabled={isOff}
                 />
-                <button className="btn btn-primary" 
+                <button className="btn btn-primary" disabled={isOff}
                     onClick={() => {
                     msgSend(msg);
                     setMsg("");

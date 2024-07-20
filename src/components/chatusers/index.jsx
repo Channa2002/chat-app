@@ -9,9 +9,10 @@ import Popover, { PopButton } from "../popover";
 import { useAuth } from "../../customhooks/index";
 
 // eslint-disable-next-line react/prop-types
-function Chatusers({users, setChat, currentUser, searchUser, searchVal, isSettings, toggleSettings, addCurrentSetting}) {
+function Chatusers({users, setChat, currentUser, searchUser, searchVal, isSettings, toggleSettings, addCurrentSetting, newMsgRelay}) {
     const [currentTab, setCurrentTab] = useState("General");
     const { logOut } = useAuth();
+    users = users.filter((data, index) => users.findIndex(item => item.id === data.id) === index); 
     
     return (
         <div className="col-12 col-lg-5 col-xl-3 border-right" style={{
@@ -53,7 +54,7 @@ function Chatusers({users, setChat, currentUser, searchUser, searchVal, isSettin
                         </div>
                     </div>
                 
-                    <ChatGroup setCurrentTab={setCurrentTab} currentTab={currentTab} />
+                    {/* <ChatGroup setCurrentTab={setCurrentTab} currentTab={currentTab} /> */}
                     <Search searchUser={searchUser} /> 
                     {currentTab === "General" && (
                         <>
@@ -62,12 +63,14 @@ function Chatusers({users, setChat, currentUser, searchUser, searchVal, isSettin
                         .filter(user => !currentUser.friend.includes(user.id)).map(user => {
                             return (
                                 <a onClick={() => setChat(user)} key={user.id} href="#" className="list-group-item list-group-item-action border-0">
-                                <div className="badge bg-success float-right">5</div>
+                                {newMsgRelay.hasOwnProperty(user.id) && newMsgRelay[user.id] > 0 && (
+                                    <div className="badge bg-success float-right">New message</div>
+                                )}
                                 <div className="d-flex align-items-start"> 
                                     <Avatar name={user.name} color={user.color} />
                                     <div className="flex-grow-1 ml-3">
                                         {user.name}
-                                        <div className="small"><span className="fas fa-circle chat-online"></span> {user.status}</div>
+                                        {/* <div className="small"><span className="fas fa-circle chat-online"></span> {user.status}</div> */}
                                     </div>
                                 </div>
                             </a>
@@ -83,12 +86,14 @@ function Chatusers({users, setChat, currentUser, searchUser, searchVal, isSettin
                             .filter(user => currentUser.friend.includes(user.id)).map(user => {
                                 return (
                                 <a onClick={() => setChat(user)} key={user.id} href="#" className="list-group-item list-group-item-action border-0">
-                                <div className="badge bg-success float-right">5</div>
+                                {newMsgRelay.hasOwnProperty(user.id) && newMsgRelay[user.id] > 0 && (
+                                    <div className="badge bg-success float-right">New message</div>
+                                )}
                                 <div className="d-flex align-items-start">
                                     <Avatar name={user.name} color={user.color}/>
                                     <div className="flex-grow-1 ml-3">
                                         {user.name}
-                                        <div className="small"><span className="fas fa-circle chat-online"></span> {user.status}</div>
+                                        {/* <div className="small"><span className="fas fa-circle chat-online"></span> {user.status}</div> */}
                                     </div>
                                 </div>
                                 </a>
